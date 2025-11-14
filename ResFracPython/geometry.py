@@ -87,16 +87,17 @@ class BoundingBox2D:
         
         # Corners in local coordinate system (before rotation)
         # Local system: length along x-axis, width along y-axis
-        local_corners = [
-            Point2D(-half_length, -half_width),
-            Point2D(half_length, -half_width),
-            Point2D(half_length, half_width),
-            Point2D(-half_length, half_width)
-        ]
+        local_corners = np.array([
+            [-half_length, -half_width],
+            [half_length, -half_width],
+            [half_length, half_width],
+            [-half_length, half_width]
+        ])
         
         # Rotate and translate
         corners = []
-        for corner in local_corners:
+        for corner_coords in local_corners:
+            corner = Point2D(corner_coords[0], corner_coords[1])
             rotated = corner.rotate(self.angle_rad)
             corners.append(rotated + self.center)
         
@@ -108,7 +109,7 @@ class BoundingBox2D:
         sin_a = np.sin(self.angle_rad)
         axis1 = Point2D(cos_a, sin_a)  # Length direction
         axis2 = Point2D(-sin_a, cos_a)  # Width direction
-        return [axis1, axis2]
+        return np.array([axis1, axis2])
     
     def get_projection_range(self, axis: Point2D) -> Tuple[float, float]:
         """
@@ -122,7 +123,6 @@ class BoundingBox2D:
     def intersects(self, other: 'BoundingBox2D') -> bool:
         """
         Check if this bounding box intersects another using Separating Axis Theorem.
-        This is robust and works for rotated bounding boxes.
         """
         # Get all axes to test (2 from each bounding box)
         axes = self.get_axes() + other.get_axes()
